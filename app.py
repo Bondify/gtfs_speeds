@@ -64,7 +64,7 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
             service_ids = ptg.read_busiest_date(tmpdirname)[1]
             view = {'trips.txt': {'service_id': service_ids}}
             
-            feed = ptg.load_geo_feed(zip_obj.filename, view)
+            feed = ptg.load_geo_feed(tmpdirname, view)
             
             routes = feed.routes
             trips = feed.trips
