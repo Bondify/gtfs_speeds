@@ -11,6 +11,7 @@ import partridge as ptg
 import io
 import base64
 from zipfile import ZipFile
+import tempfile
 
 app = dash.Dash()
 server = app.server
@@ -55,45 +56,23 @@ def update_output(list_of_contents, list_of_names, list_of_dates):
         zip_str = io.BytesIO(content_decoded)
         # Now you can use ZipFile to take the BytesIO output
         zip_obj = ZipFile(zip_str, 'r')
-        zip_obj.extractall()
-        # do something with contents
-        #children='processed data from file ' + filename
-        #service_ids = ptg.read_busiest_date(zip_str.read())[1]
-        # view = {'trips.txt': {'service_id': service_ids}}
         
-        # feed = ptg.load_geo_feed(zip_obj.filename, view)
-        
-        # routes = feed.routes
-        # trips = feed.trips
-        # stop_times = feed.stop_times
-        # stops = feed.stops
-        # shapes = feed.shapes
-        children = str(zip_str)
 
-        return children
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            zip_obj.extractall(tmpdirname)
+            children = 'created temporary directory' + tmpdirname
+            service_ids = ptg.read_busiest_date(tmpdirname)[1]
+            view = {'trips.txt': {'service_id': service_ids}}
+            
+            feed = ptg.load_geo_feed(zip_obj.filename, view)
+            
+            routes = feed.routes
+            trips = feed.trips
+            stop_times = feed.stop_times
+            stops = feed.stops
+            shapes = feed.shapes
 
-        # you can do what you wanna do with the zip object here
-
-# @app.callback(dash.dependencies.Output('output-data-upload', 'children'),
-#              [dash.dependencies.Input('upload-data', 'contents'),
-#               dash.dependencies.Input('upload-data', 'filename')])
-# def update_output(gtfs, filename):
-#     if gtfs is not None:
-#         # do something with contents
-#         #children='processed data from file ' + filename
-#         service_ids = ptg.read_busiest_date(gtfs)[1]
-#         view = {'trips.txt': {'service_id': service_ids}}
-        
-#         feed = ptg.load_geo_feed(gtfs, view)
-        
-#         routes = feed.routes
-#         trips = feed.trips
-#         stop_times = feed.stop_times
-#         stops = feed.stops
-#         shapes = feed.shapes
-#         children = routes
-#         return children
-
+        return str(routes.loc[0,'route_short_name'])
 
 if __name__ == '__main__':
     app.run_server(debug=False)
